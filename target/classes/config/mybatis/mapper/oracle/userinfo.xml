@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.userinfo">
+
+	<select id="userinfoAll" resultType="UserinfoVO" parameterType="map">
+	select * from 
+	(
+		select * from
+			(
+			    select A.*, rownum as RNUM 
+			    from
+			    (
+					select * from userinfo dsc
+			   ) A
+			   <where>
+			   		<if test="searchCondition=='ALL'">
+				   		no like '%' || #{searchKeyword} || '%' or
+	                    name like '%' || #{searchKeyword} || '%' or
+	                    address like '%' || #{searchKeyword} || '%' or
+	                    addressdt like '%' || #{searchKeyword} || '%' or
+	                    memo like '%' || #{searchKeyword} || '%' or
+	                    attentioncar like '%' || #{searchKeyword} || '%'
+			   		</if>
+			   		<if test="searchCondition=='NAME'">
+				   		name like '%' || #{searchKeyword} || '%' 
+			   		</if>
+			   		<if test="searchCondition=='ADDRESS'">
+			   			address like '%' ||' #{searchKeyword} || '%' ||' or
+	                    addressdt like '%' || #{searchKeyword} || '%'
+			   		</if>
+			   		<if test="searchCondition=='ATTENTIONCAR'">
+	                    attentioncar like '%' || #{searchKeyword} || '%'
+			   		</if>
+			   		<if test="searchCondition=='MEMO'">
+			   			 memo like '%' || #{searchKeyword} || '%' 
+			   		</if>
+			   </where>
+			)	
+		)
+	where RNUM>#{firstRecordIndex}  
+	and RNUM <![CDATA[<]]>=#{firstRecordIndex} + #{recordCountPerPage}
+	</select>
+	
+	<select id="getTotalCount" resultType="int" parameterType="map">
+		select count(*) from userinfo dsc
+			<where>
+			   		<if test="searchCondition==all">
+				   		no like '%' || #{searchKeyword} || '%' or
+	                    name like '%' || #{searchKeyword} || '%' or
+	                    address like '%' || #{searchKeyword} || '%' or
+	                    addressdt like '%' || #{searchKeyword} || '%' or
+	                    memo like '%' || #{searchKeyword} || '%' or
+	                    attentioncar like '%' ||#{searchKeyword} || '%'
+			   		</if>
+			   		<if test="searchCondition==NAME">
+				   		name like '%' || #{searchKeyword} || '%' 
+			   		</if>
+			   		<if test="searchCondition==ADDRESS">
+			   			address like '%' || #{searchKeyword} || '%' or
+	                    addressdt like '%' || #{searchKeyword} || '%'
+			   		</if>
+			   		<if test="searchCondition==ATTENTIONCAR">
+	                    attentioncar like '%' || #{searchKeyword} || '%'
+			   		</if>
+			   		<if test="searchCondition==MEMO">
+			   			 memo like '%' || #{searchKeyword} || '%' 
+			   		</if>
+			   </where>
+	</select>
+
+</mapper>

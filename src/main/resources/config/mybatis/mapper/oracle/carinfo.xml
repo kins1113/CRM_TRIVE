@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.carinfo">
+
+	<select id="carinfoAll" resultType="map" parameterType="map">
+		select * from 
+		(
+			select * from
+				(
+				    select A.*, rownum as RNUM 
+				    from
+				    (
+				    <!-- select NO, NAME, MAKER, MODEL, GENERATION, CARNUMBER, PRICE, REGDATE, PHOTOFD, DISPLACEMENT,
+						DECODE(FUELTYPE, '0', '경유', '1','휘발유','2','고급 휘발유','3','하이브리드','4','전기' ) "FUELTYPE" ,
+						DECODE(SHOWCK, '0','출력','1','미출력') "SHOWCK",
+						DECODE(GETCK, '0','보유','1', '미보유') "GETCK" 
+						from carinfo dsc -->
+						select *
+						from carinfo 
+						order by no desc
+				   ) A
+					<where> 
+					no!=0
+						<if test='searchKeyword!=null and searchKeyword!=""'>
+					   		<if test="searchCondition=='ALL'">
+						   		NAME like '%' ||  #{searchKeyword} || '%' or
+						   		MAKER like '%' ||  #{searchKeyword} || '%' or
+						   		MODEL like '%' ||  #{searchKeyword} || '%' or
+						   		GENERATION like '%' ||  #{searchKeyword} || '%' or
+						   		CARNUMBER like '%' ||  #{searchKeyword} || '%' or
+						   		PRICE like '%' ||  #{searchKeyword} || '%' or
+						   		REGDATE like '%' ||  #{searchKeyword} || '%' or
+						   		SHOWCK like '%' ||  #{searchKeyword} || '%' or
+						   		PHOTOFD like '%' ||  #{searchKeyword} || '%' or
+						   		FUELTYPE like '%' ||  #{searchKeyword} || '%' or
+						   		DISPLACEMENT like '%' ||  #{searchKeyword} || '%' or
+						   		GETCK like '%' ||  #{searchKeyword} || '%'
+					   		</if>
+				   		</if>
+				   </where>
+			
+				)	
+			)
+		where RNUM>#{firstRecordIndex}  
+		and RNUM <![CDATA[<]]>=#{firstRecordIndex} + #{recordCountPerPage}
+	</select>
+	
+	<select id="getTotalCount" resultType="int" parameterType="map">
+		select count(*) from carinfo dsc
+			<where>
+				<if test='searchKeyword!=null and searchKeyword!=""'>
+			   		<if test="searchCondition==all">
+			   			NAME like '%' ||  #{searchKeyword} || '%' or
+				   		MAKER like '%' ||  #{searchKeyword} || '%' or
+				   		MODEL like '%' ||  #{searchKeyword} || '%' or
+				   		GENERATION like '%' ||  #{searchKeyword} || '%' or
+				   		CARNUMBER like '%' ||  #{searchKeyword} || '%' or
+				   		PRICE like '%' ||  #{searchKeyword} || '%' or
+				   		REGDATE like '%' ||  #{searchKeyword} || '%' or
+				   		SHOWCK like '%' ||  #{searchKeyword} || '%' or
+				   		PHOTOFD like '%' ||  #{searchKeyword} || '%' or
+				   		FUELTYPE like '%' ||  #{searchKeyword} || '%' or
+				   		DISPLACEMENT like '%' ||  #{searchKeyword} || '%' or
+				   		GETCK like '%' ||  #{searchKeyword} || '%'
+			   		</if>
+		   		</if>
+		   </where>
+	</select>
+	
+	<update id="carinfoShowckChange" parameterType="map">
+		update carinfo
+		<if test="showck==0">
+			set showck=1
+		</if>
+		<if test="showck==1">
+			set showck=0
+		</if>
+		where no=#{no}
+	</update>
+	
+	<select id="selecrColumnName" resultType="map">
+		select COLUMN_NAME, COMMENTS from ALL_COL_COMMENTS where TABLE_NAME = 'CARINFO'
+	</select>
+	
+	<select id="selectColumnNameReal" resultType="map">
+		select COLUMN_NAME from ALL_COL_COMMENTS where TABLE_NAME = 'CARINFO'
+	</select>
+	
+	<update id="carinfoColumnAdd" parameterType="map">
+		alter table carinfo add(${colNameEN} ${colType}
+			<if test='colType=="VARCHAR"'>
+				(${colSize})
+			</if> 
+		)
+	</update>
+	
+	<update id="carinfoColumnComment" parameterType="map">
+		COMMENT ON COLUMN carinfo.${colNameEN} IS '${colNameKR}'
+	</update>
+	
+	<select id="carManagerSelect" resultType="map">
+		select A.COLUMN_NAME, A.DATA_TYPE, B.COMMENTS from 
+		(
+			SELECT  TABLE_NAME,COLUMN_NAME, DATA_TYPE FROM all_tab_columns where table_name='CARINFO'
+		) A
+		join 
+		(
+			select TABLE_NAME,COLUMN_NAME, COMMENTS from ALL_COL_COMMENTS where TABLE_NAME = 'CARINFO'
+		) B
+		on A.COLUMN_NAME = B.COLUMN_NAME
+	</select>
+	
+	<update id="carColDel" parameterType="String">
+		alter table carinfo drop column ${value}
+	</update>
+	
+	<insert id="insertCarinfo" parameterType="list" >
+		insert into carinfo 
+		values (carinfo_seq.nextval,
+			<foreach collection="list" index="i" item="item"  close=")" separator=",">
+				#{item}			
+			</foreach>
+	</insert>
+</mapper>
+
+
+
+
+
+
+
+
+
